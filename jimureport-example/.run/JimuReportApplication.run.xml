@@ -1,0 +1,20 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="JimuReportApplication" type="Application" factoryName="Application" nameIsGenerated="true">
+    <envs>
+      <env name="MYSQL-HOST" value="172.23.98.99" />
+      <env name="MYSQL-PORT" value="3307" />
+    </envs>
+    <option name="MAIN_CLASS_NAME" value="com.jeecg.modules.JimuReportApplication" />
+    <module name="jimureport-example" />
+    <option name="VM_PARAMETERS" value="-DMYSQL-HOST=172.23.98.99 -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8 -Djava.security.egd=file:/dev/./urandom" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="com.jeecg.modules.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
