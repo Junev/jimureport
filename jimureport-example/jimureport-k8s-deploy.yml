@@ -1,0 +1,128 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-config
+  namespace: ksec-edgeai
+data:
+  mysql.cnf: |
+    [mysqld]
+    character-set-server=utf8mb4
+    collation-server=utf8mb4_general_ci
+    explicit_defaults_for_timestamp=true
+    lower_case_table_names=1
+    max_allowed_packet=128M
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jimureport-mysql
+  namespace: ksec-edgeai
+spec:
+  selector:
+    app: jimureport-mysql
+  ports:
+    - protocol: TCP
+      port: 3306
+      targetPort: 3306
+  clusterIP: None
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jimureport-mysql
+  namespace: ksec-edgeai
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jimureport-mysql
+  template:
+    metadata:
+      labels:
+        app: jimureport-mysql
+    spec:
+      containers:
+        - name: mysql
+          image: jimureport-mysql:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: "root"
+            - name: TZ
+              value: "Asia/Shanghai"
+          ports:
+            - containerPort: 3306
+          volumeMounts:
+            - name: mysql-storage
+              mountPath: /var/lib/mysql
+            - name: mysql-config
+              mountPath: /etc/mysql/conf.d/mysql.cnf
+              subPath: mysql.cnf
+            - name: init-sql
+              mountPath: /docker-entrypoint-initdb.d
+          args:
+            - --character-set-server=utf8mb4
+            - --collation-server=utf8mb4_general_ci
+            - --explicit_defaults_for_timestamp=true
+            - --lower_case_table_names=1
+            - --max_allowed_packet=128M
+      volumes:
+        - name: mysql-storage
+          hostPath:
+            path: /home/apps/jimureport/db
+            type: DirectoryOrCreate
+        - name: mysql-config
+          configMap:
+            name: mysql-config
+        - name: init-sql
+          hostPath:
+            path: /home/apps/jimureport/init_sql
+            type: DirectoryOrCreate
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jimureport
+  namespace: ksec-edgeai
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jimureport
+  template:
+    metadata:
+      labels:
+        app: jimureport
+    spec:
+      containers:
+        - name: jimureport
+          image: jimureport:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: MYSQL-HOST
+              value: "jimureport-mysql"
+          ports:
+            - containerPort: 8085
+          volumeMounts:
+            - name: app-storage
+              mountPath: /opt/upload
+      volumes:
+        - name: app-storage
+          hostPath:
+            path: /home/apps/jimureport/app
+            type: DirectoryOrCreate
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jimureport
+  namespace: ksec-edgeai
+spec:
+  selector:
+    app: jimureport
+  ports:
+    - protocol: TCP
+      port: 8085
+      targetPort: 8085
+  type: NodePort
