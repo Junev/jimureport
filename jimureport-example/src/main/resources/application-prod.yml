@@ -1,5 +1,8 @@
 server:
   port: 8085
+  servlet:
+    session:
+      timeout: 720m
 spring:
   #数据库
   datasource:
@@ -76,6 +79,10 @@ jeecg:
       - 40
     ai:
       jeecg-host: http://localhost:8080/jeecgboot/
+    # 接口超时设置（毫秒）
+    connect-timeout: 300000
+    #导出超时时间（毫秒，默认600000）
+    export-timeout: 600000
 #输出sql日志
 logging:
   level:
